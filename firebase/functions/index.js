@@ -13,7 +13,30 @@ const DialogflowApp = require('actions-on-google').DialogflowApp; // Google Assi
 exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, response) => {
   console.log('Dialogflow Request headers: ' + JSON.stringify(request.headers));
   console.log('Dialogflow Request body: ' + JSON.stringify(request.body));
-  if (request.body.result) {
+  if (request.body.message.photo){
+    console.log('Image reveived')
+    return response.status(200).end('file upload erfolgreich');
+  } else if (request.body.message.chat){
+    console.log('chat reveived')
+
+    request.header.url = 'https://bots.api.ai/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook';
+
+    // import the module
+    var http = require('request');
+
+    // mak e the request
+    http.post('http://httpbin.org/ip', function (error, response, body) {
+      if (!error && response.statusCode == 200) {
+        console.log("Status code 200");
+        console.log(response);
+      } else {
+        console.log("bad response from dialogflow webhook");
+        console.log(response);
+      }
+    })
+
+    return response.status(200).end('chat received erfolgreich');
+  } else   if (request.body.result) {
     processV1Request(request, response);
   } else if (request.body.queryResult) {
     processV2Request(request, response);
@@ -212,7 +235,7 @@ function processV2Request (request, response) {
         let begriff = request.body.queryResult.parameters.Versicherungsthema;
         if ( begriff === '' ) {
             // Wenn in der Benutzereingabe die gesuchte Entity nicht erkannt wurde, macht die Suche in der DB keinen Sinn
-            sendResponse('Diese Frage kann ich zum glück nicht beantworten.');
+            sendResponse('Diese Frage kann ich zum glück nicht beantworten :)');
             console.log('Begriff nicht vorgesehen: ' + request.body.queryResult.queryText);
         } else {
         var document = db.collection('Begriffe').doc(begriff);
