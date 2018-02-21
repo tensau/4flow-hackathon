@@ -17,10 +17,29 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
     if (request.body.message.photo){
       console.log('Image reveived')
 
+      //Namen Nach Bildgröße
+      if (request.body.message.photo[2].width>400){
+        var userName = 'Erkan';
+      } else {
+        var userName = 'Heike';
+      }
+
+      console.log('User is ' + userName);
+
       var http = require('request');
-      request.body.text = "Ich bin Erkan";
-      delete request.body.photo;
-      console.log('Forwarding ' + JSON.stringify(request.body));
+      //Wir müssen den Body neu zusammen setzen
+      var newBody = {
+        "update_id": request.body.update_id,
+        "message": {
+          "message_id": request.body.message.message_id,
+          "from": request.body.message.from,
+          "chat": request.body.message.chat,
+          "date": request.body.message.date,
+          "text": "Ich bin " + userName
+        }
+      };
+
+      console.log('Forwarding ' + JSON.stringify(newBody) );
       http.post({
         headers: {
                   // "scheme": "https",
@@ -42,11 +61,11 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
                   "accept-encoding": "gzip"
                 },
         url:     'https://bots.api.ai/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook',
-        body:   request.body,
+        body:   newBody,
         json: true
       }, function(error, response, body){
         if (!error) {
-          console.log("telegram body: " + body);
+          console.log("telegram body: " +  JSON.stringify(body));
         } else {
           console.log("bad response from dialogflow webhook");
           console.log(error);
