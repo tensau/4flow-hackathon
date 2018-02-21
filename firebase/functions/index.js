@@ -16,120 +16,25 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
   if (request.body.message){
     //Die Nachricht kommt von Telegram, wir sagen dass wir tippen
     var http = require('request');
-    setTimeout(function(){
-      var sendChatActionURL='https://api.telegram.org/bot518599700:AAGQknfPNOhHNQFNSWuNpFYKlZfS7kAGwO0/sendChatAction?chat_id='
-      + request.body.message.chat.id
-      + '&action=typing';
-      console.log('Sending typing Action '+ sendChatActionURL);
-      http.get(sendChatActionURL,
-        function(error, response, body){
-          if (!error) {
-            console.log("typing action body body: " +  JSON.stringify(body));
-          } else {
-            console.log("bad response from typing action");
-            console.log(error);
-          }
-      });
-    }
-   ,4000); //4 Sekunden Wartezeit bevor wir antworten
-
-    if (request.body.message.photo){
-      console.log('Image reveived')
-
-      //Namen Nach Bildgröße
-      if (request.body.message.photo[2].width>400){
-        var userName = 'Erkan';
-      } else {
-        var userName = 'Heike';
-      }
-
-      console.log('User is ' + userName);
-
-
-      //Wir müssen den Body neu zusammen setzen
-      var newBody = {
-        "update_id": request.body.update_id,
-        "message": {
-          "message_id": request.body.message.message_id,
-          "from": request.body.message.from,
-          "chat": request.body.message.chat,
-          "date": request.body.message.date,
-          "text": "Ich bin " + userName
-        }
-      };
-
-      console.log('Forwarding ' + JSON.stringify(newBody) );
-      http.post({
-        headers: {
-                  // "scheme": "https",
-                  // "host": "bots.api.ai",
-                  // "path": "/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook",
-                  "user-agent": "Go-http-client/1.1",
-                  "transfer-encoding": "chunked",
-                  "content-type": "application/json",
-                  "function-execution-id": "y8u2hr4zrqc9",
-                  "x-appengine-api-ticket": "da0eacafdd25cb91",
-                  "x-appengine-city": "?",
-                  "x-appengine-citylatlong": "0.000000,0.000000",
-                  "x-appengine-country": "GB",
-                  "x-appengine-https": "on",
-                  "x-appengine-region": "?",
-                  "x-appengine-user-ip": "149.154.167.226",
-                  "x-cloud-trace-context": "4fc6bb1a5e75384bdc2fd24b3191c8c1/558913387969322366;o=1",
-                  "x-forwarded-for": "149.154.167.226",
-                  "accept-encoding": "gzip"
-                },
-        url:     'https://bots.api.ai/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook',
-        body:   newBody,
-        json: true
-      }, function(error, response, body){
+    var sendChatActionURL='https://api.telegram.org/bot518599700:AAGQknfPNOhHNQFNSWuNpFYKlZfS7kAGwO0/sendChatAction?chat_id='
+    + request.body.message.chat.id
+    + '&action=typing';
+    console.log('Sending typing Action '+ sendChatActionURL);
+    http.get(sendChatActionURL,
+      function(error, response, body){
         if (!error) {
-          console.log("telegram body: " +  JSON.stringify(body));
+          console.log("typing action body body: " +  JSON.stringify(body));
         } else {
-          console.log("bad response from dialogflow webhook");
+          console.log("bad response from typing action");
           console.log(error);
         }
-      });
+    });
 
-      return response.status(200).end('file upload erfolgreich');
-    } else if (request.body.message.chat){
-      console.log('chat reveived')
+    return setTimeout(function(){
+        processTelegramRequest (request, response)
+      } ,4000); //4 Sekunden Wartezeit bevor wir antworten
 
-      http.post({
-        headers: {
-                  // "scheme": "https",
-                  // "host": "bots.api.ai",
-                  // "path": "/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook",
-                  "user-agent": "Go-http-client/1.1",
-                  "transfer-encoding": "chunked",
-                  "content-type": "application/json",
-                  "function-execution-id": "y8u2hr4zrqc9",
-                  "x-appengine-api-ticket": "da0eacafdd25cb91",
-                  "x-appengine-city": "?",
-                  "x-appengine-citylatlong": "0.000000,0.000000",
-                  "x-appengine-country": "GB",
-                  "x-appengine-https": "on",
-                  "x-appengine-region": "?",
-                  "x-appengine-user-ip": "149.154.167.226",
-                  "x-cloud-trace-context": "4fc6bb1a5e75384bdc2fd24b3191c8c1/558913387969322366;o=1",
-                  "x-forwarded-for": "149.154.167.226",
-                  "accept-encoding": "gzip"
-                },
-        url:     'https://bots.api.ai/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook',
-        body:    request.body,
-        json: true
-      }, function(error, response, body){
-        if (!error) {
-          console.log("telegram body: " + body);
-        } else {
-          console.log("bad response from dialogflow webhook");
-          console.log(error);
-        }
-      });
-
-      return response.status(200).end('chat received erfolgreich');
-    }
-  } else   if (request.body.result) {
+  } else if (request.body.result) {
     processV1Request(request, response);
   } else if (request.body.queryResult) {
     processV2Request(request, response);
@@ -139,6 +44,107 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
     return response.status(400).end('Invalid Webhook Request (expecting v1 or v2 webhook request)');
   }
 });
+
+function processTelegramRequest (request, response) {
+      var http = require('request');
+      if (request.body.message.photo){
+        console.log('Image reveived')
+
+        //Namen Nach Bildgröße
+        if (request.body.message.photo[2].width>400){
+          var userName = 'Erkan';
+        } else {
+          var userName = 'Heike';
+        }
+
+        console.log('User is ' + userName);
+
+
+        //Wir müssen den Body neu zusammen setzen
+        var newBody = {
+          "update_id": request.body.update_id,
+          "message": {
+            "message_id": request.body.message.message_id,
+            "from": request.body.message.from,
+            "chat": request.body.message.chat,
+            "date": request.body.message.date,
+            "text": "Ich bin " + userName
+          }
+        };
+
+        console.log('Forwarding ' + JSON.stringify(newBody) );
+        http.post({
+          headers: {
+                    // "scheme": "https",
+                    // "host": "bots.api.ai",
+                    // "path": "/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook",
+                    "user-agent": "Go-http-client/1.1",
+                    "transfer-encoding": "chunked",
+                    "content-type": "application/json",
+                    "function-execution-id": "y8u2hr4zrqc9",
+                    "x-appengine-api-ticket": "da0eacafdd25cb91",
+                    "x-appengine-city": "?",
+                    "x-appengine-citylatlong": "0.000000,0.000000",
+                    "x-appengine-country": "GB",
+                    "x-appengine-https": "on",
+                    "x-appengine-region": "?",
+                    "x-appengine-user-ip": "149.154.167.226",
+                    "x-cloud-trace-context": "4fc6bb1a5e75384bdc2fd24b3191c8c1/558913387969322366;o=1",
+                    "x-forwarded-for": "149.154.167.226",
+                    "accept-encoding": "gzip"
+                  },
+          url:     'https://bots.api.ai/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook',
+          body:   newBody,
+          json: true
+        }, function(error, response, body){
+          if (!error) {
+            console.log("telegram body: " +  JSON.stringify(body));
+          } else {
+            console.log("bad response from dialogflow webhook");
+            console.log(error);
+          }
+        });
+
+        return response.status(200).end('file upload erfolgreich');
+      } else if (request.body.message.chat){
+        console.log('chat reveived')
+
+        http.post({
+          headers: {
+                    // "scheme": "https",
+                    // "host": "bots.api.ai",
+                    // "path": "/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook",
+                    "user-agent": "Go-http-client/1.1",
+                    "transfer-encoding": "chunked",
+                    "content-type": "application/json",
+                    "function-execution-id": "y8u2hr4zrqc9",
+                    "x-appengine-api-ticket": "da0eacafdd25cb91",
+                    "x-appengine-city": "?",
+                    "x-appengine-citylatlong": "0.000000,0.000000",
+                    "x-appengine-country": "GB",
+                    "x-appengine-https": "on",
+                    "x-appengine-region": "?",
+                    "x-appengine-user-ip": "149.154.167.226",
+                    "x-cloud-trace-context": "4fc6bb1a5e75384bdc2fd24b3191c8c1/558913387969322366;o=1",
+                    "x-forwarded-for": "149.154.167.226",
+                    "accept-encoding": "gzip"
+                  },
+          url:     'https://bots.api.ai/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook',
+          body:    request.body,
+          json: true
+        }, function(error, response, body){
+          if (!error) {
+            console.log("telegram body: " + body);
+          } else {
+            console.log("bad response from dialogflow webhook");
+            console.log(error);
+          }
+        });
+
+        return response.status(200).end('chat received erfolgreich');
+      }
+}
+
 /*
 * Function to handle v1 webhook requests from Dialogflow
 */
@@ -348,20 +354,21 @@ function processV2Request (request, response) {
         }
     },
     'input.kontaktdaten': () => {
-    /*      let begriff = request.body.queryResult.parameters.Kontaktmedium;
+      let begriff = request.body.queryResult.parameters.Kontaktmedium;
       if (begriff === '') {
         sendResponse('Bitte gebe an, welche Art von Kontaktdaten Du wissen willst.');
       } else {
         var document = db.collection('Kontaktmedien').doc(begriff);
         var getDoc = document.get()
             .then(doc => {
-              sendResponse(doc.data().begriff);
+              let person = 'Erkan'
+              sendResponse(doc.data().Erkan);
               console.log('Begriff gefunden: ' + begriff);
             }
           );
-      }*/
-      sendResponse('42');
-      console.log('42');
+      }
+      //sendResponse('42');
+      //console.log('42');
     },
     //Wenn der Kundenname angegeben wurde, dann springe abhängig vom Alter des Kunden zu verschiedenen weiteren Intents
     // 'input.kundenname': () => {
