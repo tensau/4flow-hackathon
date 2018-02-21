@@ -50,11 +50,20 @@ function processTelegramRequest (request, response) {
       if (request.body.message.photo){
         console.log('Image reveived')
 
+        let maxwidth = 0;
+        for (var i=0; i<request.body.message.photo.length; i++) {
+          if (request.body.message.photo[i].width && maxwidth < request.body.message.photo[i].width){
+            maxwidth = request.body.message.photo[i].width;
+          }
+        }
+
         //Namen Nach Bildgröße
-        if (request.body.message.photo[2].width>400){
+        if (maxwidth>=400){
           var userName = 'Erkan';
-        } else {
+        } else if (maxwidth < 400 && maxwidth > 0) {
           var userName = 'Heike';
+        } else {
+          var userName = 'Mensch';
         }
 
         console.log('User is ' + userName);
