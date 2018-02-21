@@ -330,7 +330,7 @@ function processV2Request (request, response) {
             });
         }
     },
-    'input.kontaktdaten' : () => {
+    'input.kontaktdaten': () => {
     /*      let begriff = request.body.queryResult.parameters.Kontaktmedium;
       if (begriff === '') {
         sendResponse('Bitte gebe an, welche Art von Kontaktdaten Du wissen willst.');
