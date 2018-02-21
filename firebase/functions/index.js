@@ -13,35 +13,58 @@ const DialogflowApp = require('actions-on-google').DialogflowApp; // Google Assi
 exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, response) => {
   console.log('Dialogflow Request headers: ' + JSON.stringify(request.headers));
   console.log('Dialogflow Request body: ' + JSON.stringify(request.body));
-  if (request.body.message.photo){
-    console.log('Image reveived')
-    return response.status(200).end('file upload erfolgreich');
-  } else if (request.body.message.chat){
-    console.log('chat reveived')
+  if (request.body.message){
+    if (request.body.message.photo){
+      console.log('Image reveived')
+      request.body = { 'queryResult':{'action': 'input.welcome'}};
+      processV2Request(request, response); //Das funktioniert noch nichtt
+      return response.status(200).end('file upload erfolgreich');
+    } else if (request.body.message.chat){
+      console.log('chat reveived')
 
-    request.header.url = 'https://bots.api.ai/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook';
+      var http = require('request');
 
-    // import the module
-    var http = require('request');
+      http.post({
+        headers: {
+                  // "scheme": "https",
+                  // "host": "bots.api.ai",
+                  // "path": "/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook",
+                  "user-agent": "Go-http-client/1.1",
+                  "transfer-encoding": "chunked",
+                  "content-type": "application/json",
+                  "function-execution-id": "y8u2hr4zrqc9",
+                  "x-appengine-api-ticket": "da0eacafdd25cb91",
+                  "x-appengine-city": "?",
+                  "x-appengine-citylatlong": "0.000000,0.000000",
+                  "x-appengine-country": "GB",
+                  "x-appengine-https": "on",
+                  "x-appengine-region": "?",
+                  "x-appengine-user-ip": "149.154.167.226",
+                  "x-cloud-trace-context": "4fc6bb1a5e75384bdc2fd24b3191c8c1/558913387969322366;o=1",
+                  "x-forwarded-for": "149.154.167.226",
+                  "accept-encoding": "gzip"
+                },
+        url:     'https://bots.api.ai/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook',
+        body:    request.body,
+        json: true
+      }, function(error, response, body){
+        if (!error) {
+          console.log("telegram body: " + body);
+        } else {
+          console.log("bad response from dialogflow webhook");
+          console.log(error);
+        }
+      });
 
-    // mak e the request
-    http.post('http://httpbin.org/ip', function (error, response, body) {
-      if (!error && response.statusCode == 200) {
-        console.log("Status code 200");
-        console.log(response);
-      } else {
-        console.log("bad response from dialogflow webhook");
-        console.log(response);
-      }
-    })
-
-    return response.status(200).end('chat received erfolgreich');
+      return response.status(200).end('chat received erfolgreich');
+    }
   } else   if (request.body.result) {
     processV1Request(request, response);
   } else if (request.body.queryResult) {
     processV2Request(request, response);
   } else {
     console.log('Invalid Request');
+    console.log(request);
     return response.status(400).end('Invalid Webhook Request (expecting v1 or v2 webhook request)');
   }
 });
@@ -151,7 +174,7 @@ function processV1Request (request, response) {
 // Construct rich response for Google Assistant (v1 requests only)
 const app = new DialogflowApp();
 const googleRichResponse = app.buildRichResponse()
-  .addSimpleResponse('This is the first simple response for Google Assistant')
+  .addSimpleResponse('This is the first simple response for Google Assistant')b
   .addSuggestions(
     ['Suggestion Chip', 'Another Suggestion Chip'])
     // Create a basic card and add it to the rich response
