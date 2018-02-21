@@ -16,8 +16,43 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
   if (request.body.message){
     if (request.body.message.photo){
       console.log('Image reveived')
-      request.body = { 'queryResult':{'action': 'input.welcome'}};
-      processV2Request(request, response); //Das funktioniert noch nichtt
+
+      var http = require('request');
+      request.body.text = "Ich bin Erkan";
+      delete request.body.photo;
+      console.log('Forwarding ' + JSON.stringify(request.body));
+      http.post({
+        headers: {
+                  // "scheme": "https",
+                  // "host": "bots.api.ai",
+                  // "path": "/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook",
+                  "user-agent": "Go-http-client/1.1",
+                  "transfer-encoding": "chunked",
+                  "content-type": "application/json",
+                  "function-execution-id": "y8u2hr4zrqc9",
+                  "x-appengine-api-ticket": "da0eacafdd25cb91",
+                  "x-appengine-city": "?",
+                  "x-appengine-citylatlong": "0.000000,0.000000",
+                  "x-appengine-country": "GB",
+                  "x-appengine-https": "on",
+                  "x-appengine-region": "?",
+                  "x-appengine-user-ip": "149.154.167.226",
+                  "x-cloud-trace-context": "4fc6bb1a5e75384bdc2fd24b3191c8c1/558913387969322366;o=1",
+                  "x-forwarded-for": "149.154.167.226",
+                  "accept-encoding": "gzip"
+                },
+        url:     'https://bots.api.ai/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook',
+        body:   request.body,
+        json: true
+      }, function(error, response, body){
+        if (!error) {
+          console.log("telegram body: " + body);
+        } else {
+          console.log("bad response from dialogflow webhook");
+          console.log(error);
+        }
+      });
+
       return response.status(200).end('file upload erfolgreich');
     } else if (request.body.message.chat){
       console.log('chat reveived')
@@ -174,7 +209,7 @@ function processV1Request (request, response) {
 // Construct rich response for Google Assistant (v1 requests only)
 const app = new DialogflowApp();
 const googleRichResponse = app.buildRichResponse()
-  .addSimpleResponse('This is the first simple response for Google Assistant')b
+  .addSimpleResponse('This is the first simple response for Google Assistant')
   .addSuggestions(
     ['Suggestion Chip', 'Another Suggestion Chip'])
     // Create a basic card and add it to the rich response
@@ -277,30 +312,30 @@ function processV2Request (request, response) {
         }
     },
     //Wenn der Kundenname angegeben wurde, dann springe abhängig vom Alter des Kunden zu verschiedenen weiteren Intents
-    'input.kundenname': () => {
-        let alter = '';
-        let c = request.body.queryResult.outputContexts;
-        if ( c ) {
-            for (var i=0; i<c.length; i++) {
-                if (c[i].parameters.Alter > 0) {
-                    alter = c[i].parameters.Alter;
-                }
-            }
-        }
-        let event = '';
-        if ( alter >= 30 ) {
-            event = 'Event_ab_30';
-        } else {
-            event = 'Event_unter_30';
-        }
-        let res = {
-            followupEventInput: {
-                name: event,
-                languageCode: "de"
-            }
-        };
-        sendResponse( res );
-    },
+    // 'input.kundenname': () => {
+    //     let alter = '';
+    //     let c = request.body.queryResult.outputContexts;
+    //     if ( c ) {
+    //         for (var i=0; i<c.length; i++) {
+    //             if (c[i].parameters.Alter > 0) {
+    //                 alter = c[i].parameters.Alter;
+    //             }
+    //         }
+    //     }
+    //     let event = '';
+    //     if ( alter >= 30 ) {
+    //         event = 'Event_ab_30';
+    //     } else {
+    //         event = 'Event_unter_30';
+    //     }
+    //     let res = {
+    //         followupEventInput: {
+    //             name: event,
+    //             languageCode: "de"
+    //         }
+    //     };
+    //     sendResponse( res );
+    // },
     // The default fallback intent has been matched, try to recover (https://dialogflow.com/docs/intents#fallback_intents)
     'input.unknown': () => {
       // Use the Actions on Google lib to respond to Google requests; for other requests use JSON
