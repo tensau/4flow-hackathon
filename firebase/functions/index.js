@@ -38,6 +38,8 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
     processV1Request(request, response);
   } else if (request.body.queryResult) {
     processV2Request(request, response);
+  } else if (request.body.callback_query){
+    processTelegramRequest (request, response);
   } else {
     console.log('Invalid Request');
     console.log(request);
@@ -47,7 +49,43 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
 
 function processTelegramRequest (request, response) {
       var http = require('request');
-      if (request.body.message.photo){
+      if (request.body.callback_query || request.body.message.chat ){
+        console.log('chat reveived')
+
+        http.post({
+          headers: {
+                    // "scheme": "https",
+                    // "host": "bots.api.ai",
+                    // "path": "/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook",
+                    "user-agent": "Go-http-client/1.1",
+                    "transfer-encoding": "chunked",
+                    "content-type": "application/json",
+                    "function-execution-id": "y8u2hr4zrqc9",
+                    "x-appengine-api-ticket": "da0eacafdd25cb91",
+                    "x-appengine-city": "?",
+                    "x-appengine-citylatlong": "0.000000,0.000000",
+                    "x-appengine-country": "GB",
+                    "x-appengine-https": "on",
+                    "x-appengine-region": "?",
+                    "x-appengine-user-ip": "149.154.167.226",
+                    "x-cloud-trace-context": "4fc6bb1a5e75384bdc2fd24b3191c8c1/558913387969322366;o=1",
+                    "x-forwarded-for": "149.154.167.226",
+                    "accept-encoding": "gzip"
+                  },
+          url:     'https://bots.api.ai/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook',
+          body:    request.body,
+          json: true
+        }, function(error, response, body){
+          if (!error) {
+            console.log("telegram body: " + body);
+          } else {
+            console.log("bad response from dialogflow webhook");
+            console.log(error);
+          }
+        });
+
+        return response.status(200).end('chat received erfolgreich');
+      } else if (request.body.message.photo){
         console.log('Image reveived')
 
         let maxwidth = 0;
@@ -115,42 +153,6 @@ function processTelegramRequest (request, response) {
         });
 
         return response.status(200).end('file upload erfolgreich');
-      } else if (request.body.message.chat){
-        console.log('chat reveived')
-
-        http.post({
-          headers: {
-                    // "scheme": "https",
-                    // "host": "bots.api.ai",
-                    // "path": "/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook",
-                    "user-agent": "Go-http-client/1.1",
-                    "transfer-encoding": "chunked",
-                    "content-type": "application/json",
-                    "function-execution-id": "y8u2hr4zrqc9",
-                    "x-appengine-api-ticket": "da0eacafdd25cb91",
-                    "x-appengine-city": "?",
-                    "x-appengine-citylatlong": "0.000000,0.000000",
-                    "x-appengine-country": "GB",
-                    "x-appengine-https": "on",
-                    "x-appengine-region": "?",
-                    "x-appengine-user-ip": "149.154.167.226",
-                    "x-cloud-trace-context": "4fc6bb1a5e75384bdc2fd24b3191c8c1/558913387969322366;o=1",
-                    "x-forwarded-for": "149.154.167.226",
-                    "accept-encoding": "gzip"
-                  },
-          url:     'https://bots.api.ai/telegram/6aa0ce12-38dd-4786-880f-ce8500a82c3f/webhook',
-          body:    request.body,
-          json: true
-        }, function(error, response, body){
-          if (!error) {
-            console.log("telegram body: " + body);
-          } else {
-            console.log("bad response from dialogflow webhook");
-            console.log(error);
-          }
-        });
-
-        return response.status(200).end('chat received erfolgreich');
       }
 }
 
