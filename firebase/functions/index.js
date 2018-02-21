@@ -331,20 +331,21 @@ function processV2Request (request, response) {
         }
     },
     'input.kontaktdaten': () => {
-    /*      let begriff = request.body.queryResult.parameters.Kontaktmedium;
+      let begriff = request.body.queryResult.parameters.Kontaktmedium;
       if (begriff === '') {
         sendResponse('Bitte gebe an, welche Art von Kontaktdaten Du wissen willst.');
       } else {
         var document = db.collection('Kontaktmedien').doc(begriff);
         var getDoc = document.get()
             .then(doc => {
-              sendResponse(doc.data().begriff);
+              let person = 'Erkan'
+              sendResponse(doc.data().Erkan);
               console.log('Begriff gefunden: ' + begriff);
             }
           );
-      }*/
-      sendResponse('42');
-      console.log('42');
+      }
+      //sendResponse('42');
+      //console.log('42');
     },
     //Wenn der Kundenname angegeben wurde, dann springe abhängig vom Alter des Kunden zu verschiedenen weiteren Intents
     // 'input.kundenname': () => {
