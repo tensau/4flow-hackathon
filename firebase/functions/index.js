@@ -32,7 +32,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
 
     return setTimeout(function(){
         processTelegramRequest (request, response)
-      } ,4000); //4 Sekunden Wartezeit bevor wir antworten
+      } ,200); //2 Sekunden Wartezeit bevor wir antworten
 
   } else if (request.body.result) {
     processV1Request(request, response);
@@ -358,12 +358,26 @@ function processV2Request (request, response) {
       if (begriff === '') {
         sendResponse('Bitte gebe an, welche Art von Kontaktdaten Du wissen willst.');
       } else {
-        var document = db.collection('Kontaktmedien').doc(begriff);
+        let person = 'Erkan'
+        var document = db.collection('Kontaktmedien').doc(person);
+
         var getDoc = document.get()
             .then(doc => {
-              let person = 'Erkan'
-              sendResponse(doc.data().Erkan);
-              console.log('Begriff gefunden: ' + begriff);
+              if (!doc.exists) {
+                sendResponse('Zu diesem Namen wurde leider nichts gefunden.');
+                console.log('Document nicht gefunden: ' + person);
+              } else {
+                if (begriff === 'Mailadresse') {
+                  sendResponse('Die uns bekannte E-Mailadresse lautet: ' + doc.data().Mailadresse);
+                } else if (begriff === 'Adresse') {
+                  sendResponse('Die uns bekannte Adresse lautet: ' + doc.data().Adresse);
+                } else if (begriff === 'Telefon') {
+                  sendResponse('Die uns bekannte Rufnummer lautet: ' + doc.data().Telefon);
+                }
+
+                console.log('Begriff gefunden: ' + person);
+
+              }
             }
           );
       }
