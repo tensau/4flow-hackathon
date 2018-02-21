@@ -14,6 +14,25 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
   console.log('Dialogflow Request headers: ' + JSON.stringify(request.headers));
   console.log('Dialogflow Request body: ' + JSON.stringify(request.body));
   if (request.body.message){
+    //Die Nachricht kommt von Telegram, wir sagen dass wir tippen
+    var http = require('request');
+    setTimeout(function(){
+      var sendChatActionURL='https://api.telegram.org/bot518599700:AAGQknfPNOhHNQFNSWuNpFYKlZfS7kAGwO0/sendChatAction?chat_id='
+      + request.body.message.chat.id
+      + '&action=typing';
+      console.log('Sending typing Action '+ sendChatActionURL);
+      http.get(sendChatActionURL,
+        function(error, response, body){
+          if (!error) {
+            console.log("typing action body body: " +  JSON.stringify(body));
+          } else {
+            console.log("bad response from typing action");
+            console.log(error);
+          }
+      });
+    }
+   ,4000); //4 Sekunden Wartezeit bevor wir antworten
+
     if (request.body.message.photo){
       console.log('Image reveived')
 
@@ -26,7 +45,7 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
 
       console.log('User is ' + userName);
 
-      var http = require('request');
+
       //Wir müssen den Body neu zusammen setzen
       var newBody = {
         "update_id": request.body.update_id,
@@ -75,8 +94,6 @@ exports.dialogflowFirebaseFulfillment = functions.https.onRequest((request, resp
       return response.status(200).end('file upload erfolgreich');
     } else if (request.body.message.chat){
       console.log('chat reveived')
-
-      var http = require('request');
 
       http.post({
         headers: {
