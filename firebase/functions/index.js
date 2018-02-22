@@ -378,6 +378,7 @@ function processV2Request (request, response) {
                 sendResponse('Zu diesem Namen wurde leider nichts gefunden.');
                 console.log('Document nicht gefunden: ' + person);
               } else {
+                console.log('Begriff gefunden: ' + begriff);
                 if (begriff === 'Mailadresse') {
                   sendResponse('Die uns bekannte E-Mailadresse lautet: ' + doc.data().Mailadresse);
                 } else if (begriff === 'Adresse') {
@@ -385,9 +386,6 @@ function processV2Request (request, response) {
                 } else if (begriff === 'Telefon') {
                   sendResponse('Die uns bekannte Rufnummer lautet: ' + doc.data().Telefon);
                 }
-
-                console.log('Begriff gefunden: ' + person);
-
               }
             }
           );
